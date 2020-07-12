@@ -1,0 +1,15 @@
+[Unit]
+Description=Devastator Tank Robot Service
+After=network-online.target
+
+[Service] 
+ExecStart=/usr/bin/python3 -u DevastatorTankPythonIR.py
+WorkingDirectory=/home/jfranklyn/PythonCode/DevastatorTankPython
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=jfranklyn
+
+[Install]
+WantedBy=multi-user.target
+
