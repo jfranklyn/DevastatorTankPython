@@ -3,6 +3,7 @@
 ''' Based on the Geekworm motor HAT and the RaspiMotor code
 # Based on irw.c, https://github.com/aldebaran/lirc/blob/master/tools/irw.c
 # Read IR sensor, lirc output, in order to sense key presses on an IR remote.
+# Based on LED codes from instructibles
 from Raspi_PWM_Servo_Driver import PWM
 '''
 import socket
@@ -11,6 +12,11 @@ import sys
 import Robot
 #from HCSR04Sensor import distance
 import RPi.GPIO as GPIO
+from led import Led
+from led_effects import LedEffects
+
+def start(effects):
+    effects.blink_in_series_non_stop()
 
 def setServoPulse(channel, pulse):
   pulseLength = 1000000                   # 1,000,000 us per second
@@ -82,9 +88,10 @@ robot = Robot.Robot(left_trim=LEFT_TRIM, right_trim=RIGHT_TRIM)
 # Initialize GPIO
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
-GPIO.setup(16,GPIO.OUT)
-GPIO.setup(18,GPIO.OUT)
-GPIO.setup(22,GPIO.OUT)
+
+# initialize list object for LED's
+leds = list()
+a_led_effects = LedEffects(leds)
 
 def next_key():
     '''Get the next key pressed. Return keyname,  key up/down status.
@@ -101,32 +108,14 @@ def next_key():
     
     return words[2], words[1]
 
-# flash LED lights
-def flash_leds():
-    GPIO.output(16,GPIO.HIGH)
-    GPIO.output(18,GPIO.HIGH)  
-    GPIO.output(22,GPIO.HIGH)
-    time.sleep(5)
-    GPIO.output(16,GPIO.LOW)
-    GPIO.output(18,GPIO.LOW)  
-    GPIO.output(22,GPIO.LOW)
-    time.sleep(5)
-    GPIO.output(16,GPIO.HIGH)
-    GPIO.output(18,GPIO.HIGH)  
-    GPIO.output(22,GPIO.HIGH)
-    time.sleep(5)
-    GPIO.output(16,GPIO.LOW)
-    GPIO.output(18,GPIO.LOW)  
-    GPIO.output(22,GPIO.LOW)
-    
-
 try:
 # Initialize objects and variables
     init()
                
     while True:
-#   get the remote key codes and match those to tank movements
-#   00 = key down, 01 = key up
+'''   get the remote key codes and match those to tank movements
+   00 = key down, 01 = key up '''
+
         b_keyname, b_updown = next_key()
         str_keyname = b_keyname.decode()
         str_updown = b_updown.decode()
@@ -183,11 +172,20 @@ try:
             GPIO.output(22,GPIO.LOW)
         elif (str_keyname == 'KEY_4' and str_updown == '00'):
             print ("flash lights")
-            flash_leds()
+            led_16 = Led(16)
+            leds.append(led_16)
+            led_18 = Led(18)
+            leds.append(led_18)
+            led_22 = Led(22)
+            leds.append(led_22)
+
+            start(a_led_effects)            
+
         else:
             pass        
 
-except KeyboardInterrupt:
-    print ('Interrupted')
-    GPIO.cleanup()
-    sys.exit(0)
+except SystemExit:
+    print ('Quiting program')
+finally:
+    for led in leds:
+        led.clean_up()    
