@@ -4,7 +4,7 @@
 # Based on irw.c, https://github.com/aldebaran/lirc/blob/master/tools/irw.c
 # Read IR sensor, lirc output, in order to sense key presses on an IR remote.
 # Based on LED codes from instructibles
-from Raspi_PWM_Servo_Driver import PWM
+
 '''
 import socket
 import time
@@ -14,19 +14,10 @@ import Robot
 import RPi.GPIO as GPIO
 from led import Led
 from led_effects import LedEffects
+from Raspi_PWM_Servo_Driver import PWM
 
 def start(effects):
     effects.blink_in_series_non_stop()
-
-def setServoPulse(channel, pulse):
-  pulseLength = 1000000                   # 1,000,000 us per second
-  pulseLength /= 60                       # 60 Hz
-  print ("%d us per period" % pulseLength)
-  pulseLength /= 4096                     # 12 bits of resolution
-  print ("%d us per bit" % pulseLength)
-  pulse *= 1000
-  pulse /= pulseLength
-  pwm.setPWM(channel, 0, pulse)
 
 def check_distance():
 # check distance b4 moving. NOT USED
@@ -74,20 +65,33 @@ RIGHT_TRIM  = 0
 global robot
 robot = Robot.Robot(left_trim=LEFT_TRIM, right_trim=RIGHT_TRIM)
 
-# ===========================================================================
-# Servo Code
-# ===========================================================================
-
-# Initialise the PWM device using the default address
-# bmp = PWM(0x40, debug=True)
-##pwm = PWM(0x6F)
-##servoMin = 150  # Min pulse length out of 4096
-##servoMax = 600  # Max pulse length out of 4096
-##pwm.setPWMFreq(60)   # Set frequency to 60 Hz
+''' ===========================================================================
+# Servo Code to control a digital servo using GPIO
+ ===========================================================================
+''' 
+fPWM = 50
+#pwm = PWM(0x6F) # (standard) adapt to your module
+channel = 12 # adapt to your wiring
+a = 8.5 # adapt to your servo
+b = 2  # adapt to your servo
 
 # Initialize GPIO
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
+GPIO.setup(16, GPIO.OUT) # red
+GPIO.setup(18, GPIO.OUT) # yellow
+GPIO.setup(22, GPIO.OUT) # green
+GPIO.setup(12, GPIO.OUT) # servo motor
+
+global pwm
+pwm=GPIO.PWM(channel, 50)
+pwm.start(0)
+
+def setDirection(direction):
+    duty = a / 180 * direction + b
+    pwm.ChangeDutyCycle(duty) # left -90 deg position    
+    print ("direction =", direction, "-> duty =", duty)
+    time.sleep(1) # allow to settle
 
 # initialize list object for LED's
 leds = list()
@@ -113,8 +117,8 @@ try:
     init()
                
     while True:
-'''   get the remote key codes and match those to tank movements
-   00 = key down, 01 = key up '''
+        '''   get the remote key codes and match those to tank movements
+        00 = key down, 01 = key up '''
 
         b_keyname, b_updown = next_key()
         str_keyname = b_keyname.decode()
@@ -141,12 +145,12 @@ try:
             robot.left(100, 0.15)
             sleep_time = 0.030
     #   press 5 key to control servo        
-        #elif (str_keyname == 'KEY_5' and str_updown == '00'):
-      # Change speed of continuous servo on channel O
-##            pwm.setPWM(0, 0, servoMin)
-##            time.sleep(0.5)
-##            pwm.setPWM(0, 0, servoMax)
-##            time.sleep(0.5)        
+        elif (str_keyname == 'KEY_5' and str_updown == '00'):
+            print ("Servo Control")
+            for direction in range(0, 181, 10):
+                setDirection(direction)
+            direction = 0    
+            setDirection(0)  
     # enter = stop        
         elif (str_keyname == 'KEY_0' and str_updown == '00'):
             print ("stop")
