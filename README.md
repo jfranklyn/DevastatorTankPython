@@ -1,11 +1,18 @@
 # DFRobot Devastator Tank Python Code
 Raspberry Pi 4 B Python Code
+
 Python version 3.7.3
+
 DFRobot Deastator tank kit used for the robot
+
 Geekworm Stepper motor HAT controlling all 4 motors
+
 Raspi_MotorHAT code from Geekworm
+
 Motors 1,2 used to control tank motors
+
 Motors 3,4 used to control NERF canon mounted to the tank. Any motorized NERF canon could be used. I cut a lot of the plastic out of the NERF gun to make it smaller. I added a DC motor to control the plunger that feed the bullets into the gun.
+
 Infrared code from lirc.com. This is a simplified implementation with the minimum of configuration files.
 https://stackoverflow.com/questions/57437261/setup-ir-remote-control-using-lirc-for-the-raspberry-pi-rpi
 
